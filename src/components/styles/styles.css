@@ -7,14 +7,35 @@ html, body {
 }
 .container-fluid {
   height: 100%;
+  padding: 0;
 }
 .jumbotron, .map-container {
   float: right;
   width: 75%;
 }
 
-.sidebar {
+.search {
   height: 100%;
   width: 25%;
   background-color: black;
+  float: left;
+}
+
+label {
+  display: block;
+}
+
+label, input {
+  margin: 1em 1em 0;
+}
+
+input {
+  padding: 1em;
+  font-size: 12px;
+}
+
+input[type='text'] {
+  font-size: 12px;
+  height: 45px;
+  width: 200px;
 }

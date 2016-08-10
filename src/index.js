@@ -6,7 +6,6 @@ import routes from './routes';
 import './components/styles/styles.css';
 
 
-
 render(
     <Router history={browserHistory} routes={routes} />,
   document.getElementById('root')
