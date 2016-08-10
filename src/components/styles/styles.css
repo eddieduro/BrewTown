@@ -1,0 +1,20 @@
+html, body {
+  height:100%;
+}
+#root {
+  height: 100%;
+  margin: 0;
+}
+.container-fluid {
+  height: 100%;
+}
+.jumbotron, .map-container {
+  float: right;
+  width: 75%;
+}
+
+.sidebar {
+  height: 100%;
+  width: 25%;
+  background-color: black;
+}

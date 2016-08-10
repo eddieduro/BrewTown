@@ -13,6 +13,7 @@ class App extends React.Component {
             <Gmap/>
           </div>
         </div>
+        <div className='sidebar'></div>
       </div>
     );
   }
