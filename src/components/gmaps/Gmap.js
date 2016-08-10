@@ -10,7 +10,6 @@ class Gmap extends React.Component {
                lng: null
              }],
       infoWindows: [false]
-
     };
     this.onMapCreated = this.onMapCreated.bind(this);
     this.renderInfoWindows = this.renderInfoWindows.bind(this);
@@ -18,30 +17,35 @@ class Gmap extends React.Component {
     this.toggleInfoWindow = this.toggleInfoWindow.bind(this);
   }
 
-
-
   onMapCreated(map) {
+    //get current position based off of browser geolocation
     navigator.geolocation.getCurrentPosition(
       (position) => {
         let coords = this.state.coords;
-
+        //set browser coords to state
         coords.lat = position.coords.latitude;
         coords.lng = position.coords.longitude;
+        // assign state to coords
         this.setState({ coords: coords });
-      },
-      (error) => alert(error.message)
+      }
+      // TODO: set default starting coords if geolocation not available
     );
   }
 
   renderInfoWindows() {
+    //render infoWindows as false
     const {infoWindows} = this.state;
     return this.state.coords.map((coords, index) => {
+      //for each index of coord objects return an infowindow
       if (!infoWindows[index]) return null;
       return (
         <InfoWindow
           key={index}
+          //TODO: render infowindow based on beer api
           lat={this.state.coords.lat}
           lng={this.state.coords.lng}
+          //TODO: fill content for each window with data from beer api
+          content={'yo'}
           onCloseClick={() => this.toggleInfoWindow(index)}
         />
       );
@@ -57,9 +61,11 @@ class Gmap extends React.Component {
   }
 
   renderMarkers() {
+    //for each index of coord objects return a marker
     return this.state.coords.map((coords, index) =>
       <Marker
         key={index}
+        //TODO: render markers based on beer api
         lat={this.state.coords.lat}
         lng={this.state.coords.lng}
         onClick={() => this.toggleInfoWindow(index)}
