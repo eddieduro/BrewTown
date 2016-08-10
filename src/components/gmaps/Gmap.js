@@ -1,17 +1,39 @@
-import React from 'react';
-import {Gmaps, Marker, InfoWindow, Circle} from 'react-gmaps';
+import React, {PropTypes} from 'react';
+import {connect} from 'react-redux';
+import {Gmaps, Marker, InfoWindow} from 'react-gmaps';
 
-const coords = {
-  lat: 51.5258541,
-  lng: -0.08040660000006028
-};
 
 class Gmap extends React.Component {
+  constructor(props, context){
+    super(props, context);
+
+    this.state = {
+      coords: {lat: null,
+               lng: null
+              }
+    };
+    console.log(this.state.coords);
+    this.onMapCreated = this.onMapCreated.bind(this);
+  }
 
   onMapCreated(map) {
-    map.setOptions({
-      disableDefaultUI: true
-    });
+
+
+
+  navigator.geolocation.getCurrentPosition(
+      (position) => {
+        var initialPosition = JSON.stringify(position);
+        var coords = this.state.coords;
+        coords.lat = position.coords.latitude;
+        coords.lng = position.coords.longitude;
+        this.setState({ coords: coords });
+        console.log(coords);
+
+
+      },
+      (error) => alert(error.message),
+      {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
+    );
   }
 
   onDragEnd(e) {
@@ -31,27 +53,22 @@ class Gmap extends React.Component {
       <Gmaps
         width={'800px'}
         height={'600px'}
-        lat={coords.lat}
-        lng={coords.lng}
+        lat={this.state.coords.lat}
+        lng={this.state.coords.lng}
         zoom={12}
-        loadingMessage={'Be happy'}
-        params={{v: '3.exp', key: 'YOUR_API_KEY'}}
+        loadingMessage={'Finding beers near you'}
+        params={{v: '3.exp', key: 'AIzaSyBJkpYAu46PQfND0jbbgYb40loKjJYetf8'}}
         onMapCreated={this.onMapCreated}>
         <Marker
-          lat={coords.lat}
-          lng={coords.lng}
-          draggable={true}
+          lat={this.state.coords.lat}
+          lng={this.state.coords.lng}
+          draggable={false}
           onDragEnd={this.onDragEnd} />
         <InfoWindow
-          lat={coords.lat}
-          lng={coords.lng}
-          content={'Hello, React :)'}
+          lat={this.state.coords.lat}
+          lng={this.state.coords.lng}
+          content={''}
           onCloseClick={this.onCloseClick} />
-        <Circle
-          lat={coords.lat}
-          lng={coords.lng}
-          radius={500}
-          onClick={this.onClick} />
       </Gmaps>
     );
   }
