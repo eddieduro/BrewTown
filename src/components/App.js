@@ -7,12 +7,12 @@ class App extends React.Component {
     return (
       <div className="container-fluid">
         <Header/>
+        {this.props.children}
         <div className='map-container'>
           <div id='map'>
             <Gmap/>
           </div>
         </div>
-        {this.props.children}
       </div>
     );
   }
