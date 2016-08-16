@@ -16,6 +16,7 @@ class HomePage extends React.Component{
     this.setState({
       searchText: searchText
     });
+    // console.log(this.state.searchText);
   }
 
   render() {

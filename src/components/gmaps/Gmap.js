@@ -2,22 +2,24 @@ import React from 'react';
 import {Gmaps, Marker, InfoWindow} from 'react-gmaps';
 
 const beerUrl = 'http://api.brewerydb.com/v2/';
-const markerCoord = [{lat: 45.5303732, lng: -122.68402529999999}, {lat: 45.5303993, lng: -122.68612550000000}];
+const markerCoord = [];
 
 class Gmap extends React.Component {
-  constructor(props, context){
-    super(props, context);
+  constructor(props){
+    super(props);
     this.state = {
       initCoords: {lat: null,
                    lng: null
                   },
-      markerCoords: [{}],
+      markerCoords: [{lat: null, lng: null}],
       infoWindows: [false],
-      mapCreated: false
+      mapCreated: false,
+      markersReceived: false
     };
     this.onMapCreated = this.onMapCreated.bind(this);
     this.renderInfoWindows = this.renderInfoWindows.bind(this);
     this.renderMarkers = this.renderMarkers.bind(this);
+    this.getMarkers = this.getMarkers.bind(this);
     this.toggleInfoWindow = this.toggleInfoWindow.bind(this);
   }
 
@@ -66,38 +68,86 @@ class Gmap extends React.Component {
     });
   }
 
-  renderMarkers() {
-    // let url = beerUrl + 'search/geo/point?lat=' + this.state.initCoords.lat + '&lng=' + this.state.initCoords.lng + '&radius=1&key=2c5c88c1b04d408ae2be36507429f298&';
+  getMarkers() {
+    //if user has entered search text create api query string here
+    let url = '';
+    let coordArr = this.state.markerCoords;
+    // let markerArr = [];
 
-    // let markerArr = [{lat: 45.5303732, lng: 122.68402529999999}, {lat: 46.5303732, lng: 122.79802529999999}];
-    // fetch(url).then(function(response) {
-    //   return response.json();
-    // }).then(function(data) {
-    //   let breweries = data.data;
-    //   breweries.map(function(brewery, index) {
-    //     let marker = {lat: null, lng: null};
-    //     marker.lat = brewery.latitude;
-    //     marker.lng = brewery.longitude;
-    //     markerArr.push(marker);
-    //   });
-    //   console.log(markerArr);
-    // }).catch(function() {
-    //   console.log("Error");
-    // });
+    if(this.props.searchText) {
+      console.log('works, gmaps-component');
+      url += beerUrl + 'search?q=' + this.props.searchText + '&radius=1&key=e5f681af5e5cf5cd6f107ead526ba98d&';
+    } else {
+    //else build api query string here
+      url += beerUrl + 'search/geo/point?lat=' + this.state.initCoords.lat + '&lng=' + this.state.initCoords.lng + '&radius=1&key=e5f681af5e5cf5cd6f107ead526ba98d&';
+    }
 
-    //for each index of coord objects return a marker
-    return markerCoord.map((coords, index) =>
-      <Marker
-      key={index}
-      //TODO: render markers based on beer api
-      lat={coords.lat}
-      lng={coords.lng}
-      onClick={() => this.toggleInfoWindow(index)}
-      />
-    );
+      // if(coordArr != null && this.state.mapCreated ) {
+
+    fetch(url).then(function(response) {
+      return response.json();
+    }).then(function(data) {
+      return data.data;
+    }).then(function(items) {
+      // console.log(items);
+      // coordArr.concat([items]);
+      // console.log(coordArr);
+      this.setState({
+        markerCoords: items,
+        markersReceived: true
+      });
+
+    }.bind(this)).catch(function() {
+      console.log("Error");
+    });
+    // console.log(this.state.markerCoords);
   }
 
+  renderMarkers() {
+    if(!this.state.markersReceived || this.state.markerCoords == null){
+      this.getMarkers();
+    }
+    if(this.state.markerCoords != null) {
+      console.log(this.state.markerCoords, 'works');
+      return this.state.markerCoords.forEach(function(coords, index) {
+        console.log(coords, 'coords');
+        return <Marker
+                 key={index}
+                 lat={coords.latitude}
+                 lng={coords.longitude}
+                 onClick={() => this.toggleInfoWindow(index)}
+               />
+      });
+    }
+  }
+  // mountMarkers() {
+  //   if( this.state.markersReceived){}
+  // }
+  componentWillUpdate() {
+    this.renderMarkers();
+  }
+  // componentDidUpdate() {
+  //
+  //   console.log(this.state.markerCoords);
+  //
+  // }
   render() {
+    const markers = this.state.markerCoords.map((coords, index) => {
+            return <Marker key={index}
+                lat={coords.latitude}
+                lng={coords.longitude}
+                 onClick={() => this.toggleInfoWindow(index)} />;
+        });
+    // console.log(this.state.marker)
+    // const markers = this.state.markerCoords.forEach((coords, index) => {
+    //   // console.log(coords, 'coords');
+    //   return <Marker
+    //            key={index}
+    //            lat={coords.latitude}
+    //            lng={coords.longitude}
+    //            onClick={() => this.toggleInfoWindow(index)}
+    //          />
+    // });
     return (
       <div>
         <Gmaps
@@ -108,8 +158,9 @@ class Gmap extends React.Component {
           loadingMessage={'Finding beers near you'}
           params={{v: '3.exp', key: 'AIzaSyBJkpYAu46PQfND0jbbgYb40loKjJYetf8'}}
           onMapCreated={this.onMapCreated}>
-          {this.renderMarkers()}
-          {this.renderInfoWindows()}
+          {/*{this.renderMarkers()}*/}
+          {markers}
+          {/*{this.renderInfoWindows()}*/}
         </Gmaps>
 
       </div>
@@ -118,3 +169,12 @@ class Gmap extends React.Component {
 }
 
 export default Gmap;
+
+
+// breweries.map(function(brewery, index) {
+//   let marker = {lat: null, lng: null};
+//   marker.lat = brewery.latitude;
+//   marker.lng = brewery.longitude;
+//   markerCoord.push(marker);
+//   return markerCoord;
+// });

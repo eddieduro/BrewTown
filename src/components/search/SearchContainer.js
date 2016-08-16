@@ -11,7 +11,7 @@ class SearchContainer extends React.Component {
   this.props.onUserInput(
     this.refs.searchTextInput.value,
   );
-  console.log(this.props);
+  // console.log(this.props);
  }
 
   render() {
