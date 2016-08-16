@@ -4,6 +4,7 @@ import {Gmaps, Marker, InfoWindow} from 'react-gmaps';
 const beerUrl = 'http://api.brewerydb.com/v2/';
 const markerCoord = [];
 
+
 class Gmap extends React.Component {
   constructor(props){
     super(props);
@@ -39,35 +40,6 @@ class Gmap extends React.Component {
     );
   }
 
-  renderInfoWindows() {
-    //render infoWindows as false
-    const {infoWindows} = this.state;
-
-    return markerCoord.map((coords, index) => {
-      //for each index of coord objects return an infowindow
-      if (!infoWindows[index]) return null;
-      return (
-        <InfoWindow
-          key={index}
-          //TODO: render infowindow based on beer api
-          lat={coords.lat}
-          lng={coords.lng}
-          //TODO: fill content for each window with data from beer api
-          content={'yo'}
-          onCloseClick={() => this.toggleInfoWindow(index)}
-        />
-      );
-    });
-  }
-
-  toggleInfoWindow(index) {
-    const {infoWindows} = this.state;
-    infoWindows[index] = !infoWindows[index];
-    this.setState({
-      infoWindows
-    });
-  }
-
   getMarkers() {
     //if user has entered search text create api query string here
     let url = '';
@@ -81,7 +53,6 @@ class Gmap extends React.Component {
     //else build api query string here
       url += beerUrl + 'search/geo/point?lat=' + this.state.initCoords.lat + '&lng=' + this.state.initCoords.lng + '&radius=1&key=e5f681af5e5cf5cd6f107ead526ba98d&';
     }
-
       // if(coordArr != null && this.state.mapCreated ) {
 
     fetch(url).then(function(response) {
@@ -120,24 +91,74 @@ class Gmap extends React.Component {
       });
     }
   }
-  // mountMarkers() {
-  //   if( this.state.markersReceived){}
-  // }
+
+  renderInfoWindows() {
+    //render infoWindows as false
+
+
+    return this.state.markerCoords.map((coords, index) => {
+      //for each index of coord objects return an infowindow
+      if (!infoWindows[index]) return null;
+      return (
+        <InfoWindow
+          key={index}
+          //TODO: render infowindow based on beer api
+          lat={coords.lat}
+          lng={coords.lng}
+          //TODO: fill content for each window with data from beer api
+          content={'yo'}
+          onCloseClick={() => this.toggleInfoWindow(index)}
+        />
+      );
+    });
+  }
+
+  toggleInfoWindow(index) {
+    const {infoWindows} = this.state;
+    infoWindows[index] = !infoWindows[index];
+    this.setState({
+      infoWindows
+    });
+  }
+
   componentWillUpdate() {
     this.renderMarkers();
   }
-  // componentDidUpdate() {
-  //
-  //   console.log(this.state.markerCoords);
-  //
-  // }
+
   render() {
+    const {infoWindows} = this.state;
     const markers = this.state.markerCoords.map((coords, index) => {
             return <Marker key={index}
                 lat={coords.latitude}
                 lng={coords.longitude}
-                 onClick={() => this.toggleInfoWindow(index)} />;
+                onClick={() => this.toggleInfoWindow(index)} />;
         });
+    const infoWindow = this.state.markerCoords.map((coords, index) => {
+      let breweryName = coords.name;
+      let breweryAddress = coords.streetAddress;
+      let breweryPhone = coords.phone;
+      //TODO: message for when phone or address is not listed
+      if(coords.brewery) {
+        breweryName = coords.brewery.name;
+        // console.log('yee');
+      }
+
+
+      let breweryInfo = breweryName + ' ' + breweryAddress + ' ' + breweryPhone;
+      //for each index of coord objects return an infowindow
+      // if infoWindow is available return null so window starts off closed.
+      if (!infoWindows[index]) return null;
+      return <InfoWindow
+          key={index}
+          //TODO: render infowindow based on beer api
+          lat={coords.latitude}
+          lng={coords.longitude}
+          //TODO: fill content for each window with data from beer api
+          content={breweryInfo}
+          onCloseClick={() => this.toggleInfoWindow(index)}
+        />
+
+    });
     // console.log(this.state.marker)
     // const markers = this.state.markerCoords.forEach((coords, index) => {
     //   // console.log(coords, 'coords');
@@ -160,7 +181,7 @@ class Gmap extends React.Component {
           onMapCreated={this.onMapCreated}>
           {/*{this.renderMarkers()}*/}
           {markers}
-          {/*{this.renderInfoWindows()}*/}
+          {infoWindow}
         </Gmaps>
 
       </div>
