@@ -30,8 +30,10 @@ class Gmap extends React.Component {
     //if user has entered search text create api query string here
     let url = '';
     if(this.props.searchText !== '') {
+      console.log('works, gmaps-component');
       url += this.props.updateUrl(this.props.searchText);
     } else {
+      console.log('works, 2nd');
       url += beerUrl + 'search/geo/point?lat=' + this.props.initCoords.lat + '&lng=' + this.props.initCoords.lng + '&radius=1&key=e5f681af5e5cf5cd6f107ead526ba98d&';
     }
 
