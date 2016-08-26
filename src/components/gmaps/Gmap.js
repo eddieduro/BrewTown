@@ -2,7 +2,7 @@ import React from 'react';
 import {Gmaps, Marker, InfoWindow} from 'react-gmaps';
 
 const beerUrl = 'http://api.brewerydb.com/v2/';
-const markerCoord = [];
+// const markerCoord = [];
 
 
 class Gmap extends React.Component {
@@ -15,7 +15,10 @@ class Gmap extends React.Component {
       markerCoords: [{lat: null, lng: null}],
       infoWindows: [false],
       mapCreated: false,
-      markersReceived: false
+      markersReceived: false,
+      search: '',
+      url: '',
+      updateMarkers: false
     };
     // this.onMapCreated = this.onMapCreated.bind(this);
     this.renderInfoWindows = this.renderInfoWindows.bind(this);
@@ -29,42 +32,56 @@ class Gmap extends React.Component {
   getMarkers() {
     //if user has entered search text create api query string here
     let url = '';
-    if(this.props.searchText !== '') {
-      console.log('works, gmaps-component');
-      url += this.props.updateUrl(this.props.searchText);
+    if(this.props.searchText !== '' && this.props.submitSearch) {
+      console.log('works, gmaps-component 2', this.props.newUrl);
+      if (this.props.newUrl !== '') {
+        console.log('new url works');
+        url += this.props.newUrl;
+        this.setState({ url: url });
+      }
+      this.setState({ search: this.props.searchText});
     } else {
       console.log('works, 2nd');
-      url += beerUrl + 'search/geo/point?lat=' + this.props.initCoords.lat + '&lng=' + this.props.initCoords.lng + '&radius=1&key=e5f681af5e5cf5cd6f107ead526ba98d&';
+      url += beerUrl + 'search/geo/point?lat=' + this.props.initCoords.lat + '&lng=' + this.props.initCoords.lng + '&radius=1&key=2c5c88c1b04d408ae2be36507429f298&';
     }
 
-    // console.log(url);
-    let coordArr = this.state.markerCoords;
+    if(this.state.url) {
+      console.log('new fetch')
+      fetch(this.state.url).then(function(response) {
+        return response.json();
+      }).then(function(data) {
+        return data.data;
+      }).then(function(items) {
 
-    // if(this.props.searchText) {
-    //   console.log('works, gmaps-component');
-    //   url += beerUrl + 'search?q=' + this.props.searchText + '&radius=1&key=e5f681af5e5cf5cd6f107ead526ba98d&';
-    // } else {
-    // //else build api query string here
-    //   url += beerUrl + 'search/geo/point?lat=' + this.state.initCoords.lat + '&lng=' + this.state.initCoords.lng + '&radius=1&key=e5f681af5e5cf5cd6f107ead526ba98d&';
-    // }
-
-    fetch(url).then(function(response) {
-      return response.json();
-    }).then(function(data) {
-      return data.data;
-    }).then(function(items) {
-
-      this.setState({
-        markerCoords: items,
-        markersReceived: true
+        this.setState({
+          markerCoords: items,
+          markersReceived: true
+        });
+        console.log(items);
+      }.bind(this)).catch(function() {
+        console.log("Error 1");
       });
+    } else {
+      fetch(url).then(function(response) {
+        return response.json();
+      }).then(function(data) {
+        console.log(data);
+        return data.data;
+      }).then(function(items) {
 
-    }.bind(this)).catch(function() {
-      console.log("Error");
-    });
+        this.setState({
+          markerCoords: items,
+          markersReceived: true
+        });
+        console.log(items);
+      }.bind(this)).catch(function() {
+        console.log("Error 2");
+      });
+    }
   }
 
-  renderMarkers() {
+
+  renderMarkers(searchText) {
     if(!this.state.markersReceived || this.state.markerCoords == null){
       this.getMarkers();
     }
@@ -81,6 +98,7 @@ class Gmap extends React.Component {
   }
 
   renderInfoWindows() {
+    const {infoWindows} = this.state;
     return this.state.markerCoords.map((coords, index) => {
       //for each index of coord objects return an infowindow
       if (!infoWindows[index]) return null;
@@ -95,10 +113,38 @@ class Gmap extends React.Component {
     });
   }
 
+
   componentWillUpdate() {
-    this.renderMarkers();
+    let searchText = this.props.submitSearchText;
+    // console.log(searchText, this.state.search, 'componentWillUpdate');
+    if(searchText !== '' && searchText !== this.state.search){
+      console.log('componentWillUpdate');
+      this.handleUpdateMap();
+    } else {
+      this.renderMarkers();
+    }
   }
 
+  handleUpdateMap(){
+    console.log(this.props.submitSearchText, 'searchtext handleupdate');
+    this.setState({ search: this.props.submitSearchText});
+    // console.log(this.state.search);
+    if(this.props.mapCreated && this.props.submitSearchText !== ''){
+      console.log('handleUpdateMap', this.props.submitSearchText);
+      this.props.onUpdateMap();
+      this.props.updateUrl(this.props.searchText);
+
+      this.setState({updateMarkers: true});
+    }
+  }
+
+  componentDidUpdate(){
+    if( this.state.updateMarkers ) {
+      console.log('componentDidUpdate');
+      this.getMarkers();
+      this.setState({ updateMarkers: false});
+    }
+  }
   // handleChange(){
   //   this.props
   // }

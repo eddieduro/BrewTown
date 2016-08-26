@@ -16,25 +16,26 @@ class HomePage extends React.Component{
       markerCoords: [{lat: null, lng: null}],
       mapCreated: false,
       markersReceived: false,
-      url: ''
+      url: '',
+      newUrl: '',
+      updatedMap: false,
+      submitSearch: false,
+      submitSearchText: ''
     };
     this.onMapCreated = this.onMapCreated.bind(this);
+    this.onUpdateMap = this.onUpdateMap.bind(this);
+    this.updateUrl = this.updateUrl.bind(this);
     this.handleUserInput = this.handleUserInput.bind(this);
-    this.getUrl  = this.getUrl.bind(this);
+    this.handleSearchSubmit = this.handleSearchSubmit.bind(this);
   }
 
   onMapCreated(map) {
-    //get current position based off of browser geolocation
-    if(this.state.searchText !== '') {
-      console.log('here');
+    if(this.state.searchText !== '' && this.state.updatedMap) {
+      console.log('created update map', this.state.newUrl);
       let initCoords = this.state.initCoords;
-
-      initCoords.lat = this.state.markerCoords[0].lat;
-      initCoords.lng = this.state.markerCoords[0].lng;
-
-      this.setState({ initCoords: initCoords });
-      this.setState({ mapCreated: true});
+      this.setState({ updatedMap: false});
     } else {
+      //get current position based off of browser geolocation
       console.log('here 2');
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -49,35 +50,50 @@ class HomePage extends React.Component{
         // TODO: set default starting coords if geolocation not available
       );
     }
+  }
 
+  updateUrl(searchText) {
+    let newUrl = beerUrl + 'search?q=' + searchText + '&key=2c5c88c1b04d408ae2be36507429f298&';
+    this.setState({ newUrl: newUrl});
+    // console.log(newUrl);
+  }
+
+  onUpdateMap(map){
+    if(this.state.searchText !== '' && this.state.mapCreated) {
+      console.log('here, update');
+      let initCoords = this.state.initCoords;
+
+      initCoords.lat = this.state.markerCoords.lat;
+      initCoords.lng = this.state.markerCoords.lng;
+      console.log(initCoords);
+
+      this.setState({ initCoords: initCoords });
+      this.setState({ mapCreated: false});
+      this.setState({ updatedMap: true});
+    }
   }
 
   handleUserInput(searchText) {
     this.setState({
       searchText: searchText
     });
+
+  }
+
+  handleSearchSubmit(searchText) {
+    console.log(searchText);
+    this.setState({
+      submitSearchText: searchText,
+      submitSearch: true
+    });
     // console.log(this.state.searchText);
   }
 
-  getUrl(searchText) {
-    let newUrl = '';
-
-    if(this.state.searchText !== '') {
-      console.log('works, gmaps-component');
-      newUrl += beerUrl + 'search?q=' + searchText + '&radius=1&key=e5f681af5e5cf5cd6f107ead526ba98d&';
-      this.setState({ url: newUrl });
-      return null;
-    } else {
-      //else build api query string here
-      newUrl += beerUrl + 'search/geo/point?lat=' + this.state.initCoords.lat + '&lng=' + this.state.initCoords.lng + '&radius=1&key=e5f681af5e5cf5cd6f107ead526ba98d&';
-      this.setState({ url: newUrl });
-      return null;
+  componentDidUpdate() {
+    if(this.state.updatedMap) {
+      this.onMapCreated();
     }
   }
-  // componentWillmount(){
-  //
-  // }
-
   render() {
     // if(!this.state.mapCreated) {
     //   this.getUrl();
@@ -87,7 +103,8 @@ class HomePage extends React.Component{
         <div className='container-fluid'>
           <SearchContainer
             searchText={this.state.searchText}
-            onUserInput={this.handleUserInput}/>
+            onUserInput={this.handleUserInput}
+            onSearchSubmit={this.handleSearchSubmit}/>
         </div>
 
         <div className="jumbotron">
@@ -102,7 +119,14 @@ class HomePage extends React.Component{
               searchText={this.state.searchText}
               initCoords={this.state.initCoords}
               onMapCreated={this.onMapCreated}
-              updateUrl={this.getUrl}
+              mapCreated={this.state.mapCreated}
+              onUpdateMap={this.onUpdateMap}
+              updateUrl={this.updateUrl}
+              newUrl={this.state.newUrl}
+              url={this.state.url}
+              onSearchSubmit={this.handleSearchSubmit}
+              submitSearch={this.state.submitSearch}
+              submitSearchText={this.state.submitSearchText}
             />
           </div>
         </div>

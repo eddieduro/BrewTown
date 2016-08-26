@@ -6,21 +6,33 @@ class SearchContainer extends React.Component {
     super(props, context);
     // console.log(props, context);
     this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
   handleChange() {
-  this.props.onUserInput(
-    this.refs.searchTextInput.value,
-  );
-  // console.log(this.props);
- }
+    this.props.onUserInput(
+      this.refs.searchTextInput.value,
+    );
+  }
 
+  handleSubmit(e) {
+    e.preventDefault();
+    let searchText = this.props.searchText;
+    // console.log(searchText, 'searchContainer');
+    if(!searchText) {
+      return;
+    } else {
+      this.props.onSearchSubmit(searchText);
+    }
+    //  this.props.onCommentSubmit({ searchText: searchText})
+    // this.setState({ searchText: ''});
+  }
 
   render() {
 
     return(
       <div className='container-fluid'>
         <div className='search'>
-          <form>
+          <form className='searchForm' onSubmit={this.handleSubmit}>
             <label>Search</label>
             <input
               type='text'
@@ -29,6 +41,7 @@ class SearchContainer extends React.Component {
               ref="searchTextInput"
               onChange={this.handleChange}>
               </input>
+              <input type="submit" value="Post" />
           </form>
         </div>
       </div>
