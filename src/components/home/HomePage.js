@@ -21,7 +21,8 @@ class HomePage extends React.Component{
       newUrl: '',
       updatedMap: false,
       submitSearch: false,
-      submitSearchText: ''
+      submitSearchText: '',
+      clientToken: ''
     };
     this.onMapCreated = this.onMapCreated.bind(this);
     this.onUpdateMap = this.onUpdateMap.bind(this);
@@ -39,18 +40,19 @@ class HomePage extends React.Component{
       headers: {
        'Accept': 'application/x-www-form-urlencoded',
        'Content-type': 'application/x-www-form-urlencoded'
-      //  'Origin': '',
-      //  'Host': 'api.yelp.com'
       },
       body:
         'grant_type=client_credentials&client_id=TDWAt2VKQsLvdCtBz4-hQQ&client_secret=pxjafQhHbG9JzG9hms2cugVpcc5sxffTx01P61KiBjREllmJxFwMomxqXu857ZaG'
-        // 'client_id': 'TDWAt2VKQsLvdCtBz4-hQQ',
-        // 'client_secret': 'pxjafQhHbG9JzG9hms2cugVpcc5sxffTx01P61KiBjREllmJxFwMomxqXu857ZaG'
     }
     fetch(yelpUrl, obj).then(function(response) {
       return response.json();
     }).then(function(data) {
       console.log(data, 'yelp response');
+      return data.access_token;
+    }).then(function(token) {
+      if(this.state.clientToken === '') {
+        this.setState({ clientToken: token });
+      }
     }.bind(this)).catch(function() {
       console.log("Error 1");
     });
