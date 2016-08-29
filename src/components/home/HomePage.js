@@ -3,7 +3,8 @@ import {Link} from 'react-router';
 import Gmap from '../gmaps/Gmap';
 import SearchContainer from '../search/SearchContainer';
 
-const beerUrl = 'http://api.brewerydb.com/v2/';
+// const beerUrl = 'http://api.brewerydb.com/v2/';
+const beerUrl = 'https://api.yelp.com/v2/';
 
 class HomePage extends React.Component{
   constructor(props){
@@ -27,6 +28,32 @@ class HomePage extends React.Component{
     this.updateUrl = this.updateUrl.bind(this);
     this.handleUserInput = this.handleUserInput.bind(this);
     this.handleSearchSubmit = this.handleSearchSubmit.bind(this);
+    this.fetchData = this.fetchData.bind(this);
+  }
+
+  fetchData(){
+    let yelpUrl = 'https://api.yelp.com/oauth2/token';
+
+    let obj = {
+      method: "POST",
+      headers: {
+       'Accept': 'application/x-www-form-urlencoded',
+       'Content-type': 'application/x-www-form-urlencoded'
+      //  'Origin': '',
+      //  'Host': 'api.yelp.com'
+      },
+      body:
+        'grant_type=client_credentials&client_id=TDWAt2VKQsLvdCtBz4-hQQ&client_secret=pxjafQhHbG9JzG9hms2cugVpcc5sxffTx01P61KiBjREllmJxFwMomxqXu857ZaG'
+        // 'client_id': 'TDWAt2VKQsLvdCtBz4-hQQ',
+        // 'client_secret': 'pxjafQhHbG9JzG9hms2cugVpcc5sxffTx01P61KiBjREllmJxFwMomxqXu857ZaG'
+    }
+    fetch(yelpUrl, obj).then(function(response) {
+      return response.json();
+    }).then(function(data) {
+      console.log(data, 'yelp response');
+    }.bind(this)).catch(function() {
+      console.log("Error 1");
+    });
   }
 
   onMapCreated(map) {
@@ -51,9 +78,9 @@ class HomePage extends React.Component{
       );
     }
   }
-
+  // search/?location=92026&sort=1&category_filter=breweries
   updateUrl(searchText) {
-    let newUrl = beerUrl + 'search?q=' + searchText + '&key=2c5c88c1b04d408ae2be36507429f298&';
+    let newUrl = beerUrl + 'search/?location=' + searchText + 'sort=1&category_filter=breweries&oauth_consumer_key=wGZB-55TSAHeTqqLLTugww&oauth_token=emfbijnN_YscAimIvyNZL1Ix4RIMyHBS&oauth_signature_method=hmac-sha1&oauth_signature=SElWUZcrPrXhhnvRpsZfmL-K3b4&oauth_timestamp';
     this.setState({ newUrl: newUrl});
     // console.log(newUrl);
   }
@@ -98,6 +125,7 @@ class HomePage extends React.Component{
     // if(!this.state.mapCreated) {
     //   this.getUrl();
     // }
+    this.fetchData();
     return(
       <div className="main">
         <div className='container-fluid'>

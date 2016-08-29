@@ -2,7 +2,7 @@ import React from 'react';
 import {Gmaps, Marker, InfoWindow} from 'react-gmaps';
 
 const beerUrl = 'http://api.brewerydb.com/v2/';
-// const markerCoord = [];
+const yelpUrl = 'https://api.yelp.com/v2/';
 
 
 class Gmap extends React.Component {
@@ -117,7 +117,7 @@ class Gmap extends React.Component {
   componentWillUpdate() {
     let searchText = this.props.submitSearchText;
     // console.log(searchText, this.state.search, 'componentWillUpdate');
-    if(searchText !== '' && searchText !== this.state.search){
+    if(searchText !== '' && searchText !== this.state.search && this.props.submitSearchText){
       console.log('componentWillUpdate');
       this.handleUpdateMap();
     } else {
@@ -129,7 +129,7 @@ class Gmap extends React.Component {
     console.log(this.props.submitSearchText, 'searchtext handleupdate');
     this.setState({ search: this.props.submitSearchText});
     // console.log(this.state.search);
-    if(this.props.mapCreated && this.props.submitSearchText !== ''){
+    if(this.props.mapCreated && this.props.submitSearchText !== '' && this.props.submitSearchText){
       console.log('handleUpdateMap', this.props.submitSearchText);
       this.props.onUpdateMap();
       this.props.updateUrl(this.props.searchText);
