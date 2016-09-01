@@ -3,7 +3,7 @@ import {Gmaps, Marker, InfoWindow} from 'react-gmaps';
 
 const beerUrl = 'https://api.brewerydb.com/v2/';
 const yelpUrl = 'https://api.yelp.com/v2/';
-
+const beerIcon = 'https://static.dpaw.wa.gov.au/static/libs/ionicons/1.3.2/src/beer.svg';
 
 class Gmap extends React.Component {
   constructor(props){
@@ -20,50 +20,49 @@ class Gmap extends React.Component {
       url: '',
       updateMarkers: false,
       receivedToken: false,
-      yelpUrl: ''
+      token: ''
     };
     // this.onMapCreated = this.onMapCreated.bind(this);
     this.renderInfoWindows = this.renderInfoWindows.bind(this);
     this.renderMarkers = this.renderMarkers.bind(this);
     this.getMarkers = this.getMarkers.bind(this);
     this.toggleInfoWindow = this.toggleInfoWindow.bind(this);
-    this.updateUrl = this.updateUrl.bind(this);
   }
 
-  updateUrl(){
-    this.setState({yelpUrl: this.props.yelpUrl});
-  }
+
 
   getMarkers() {
+
     //if user has entered search text create api query string here
     let url = '';
-    let yelp = '';
     if(this.props.searchText !== '' && this.props.submitSearch) {
-      console.log('works, gmaps-component 2', this.props.newUrl);
-      this.updateUrl();
-      // url += this.props.newUrl;
-      // yelp += this.props.yelpUrl;
-      // this.setState({
-      //   url: url,
-      //   yelp: yelp
-      // });
-
-      // console.log(this.props.searchText, 'searchText', this.props.submitSearch, 'submitSearchText', this.props.newUrl, 'newUrl', this.props.yelpUrl, 'yelp');
-
-      // if (this.props.newUrl === '' && this.props.yelpUrl) {
-      //   console.log('new url works', url);
-      // }
+      console.log('works, gmaps-component 2');
+      if (this.props.newUrl !== '') {
+        console.log('new url works', this.props.newUrl, 'clientToken', this.props.clientToken);
+        url += this.props.newUrl;
+        this.setState({ url: url });
+      }
+      console.log(this.state.token, 'STATE TOKEN');
+      let obj = {
+        method: "POST",
+        headers: {
+          'Accept': 'application/x-www-form-urlencoded',
+          'Content-type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer' + this.props.clientToken
+        }
+      };
       // ;
       this.setState({ search: this.props.searchText});
+      console.log(obj);
     } else {
       console.log('works, 2nd');
-      url += beerUrl + 'search/geo/point?lat=' + this.props.initCoords.lat + '&lng=' + this.props.initCoords.lng + '&radius=1&key=2c5c88c1b04d408ae2be36507429f298&';
+      url += beerUrl + 'search/geo/point?lat=' + this.props.initCoords.lat + '&lng=' + this.props.initCoords.lng + '&radius=1&key=e5f681af5e5cf5cd6f107ead526ba98d&';
     }
 
-    console.log(this.props.clientToken , 'clientToken');
-    if(this.props.clientToken !== '' && this.state.receivedToken !== true ) {
+    console.log(this.props.clientToken, 'clientToken');
+    if(this.props.clientToken !== '' && this.state.receivedToken === false ) {
       console.log('new fetch')
-      fetch(this.state.yelpUrl).then(function(response) {
+      fetch(this.state.url, obj).then(function(response) {
         return response.json();
       }).then(function(data) {
         return data.data;
@@ -100,6 +99,7 @@ class Gmap extends React.Component {
 
 
   renderMarkers(searchText) {
+    // this.refs.Gmaps.refs.Marker.getEntity().setIcon(beerIcon);
     if(!this.state.markersReceived || this.state.markerCoords == null){
       this.getMarkers();
     }
@@ -133,15 +133,19 @@ class Gmap extends React.Component {
 
 
   componentWillReceiveProps() {
+
     let searchText = this.props.submitSearchText;
     // console.log(searchText, this.state.search, 'componentWillUpdate');
     if(searchText !== '' && searchText !== this.state.search && this.props.submitSearchText && this.state.receivedToken !== true){
-      console.log('componentWillReceiveProps');
+      console.log('componentWillUpdate updatemap');
       this.handleUpdateMap();
     } else {
-      console.log('componentWillReceiveProps, render markers');
-
       this.renderMarkers();
+    }
+    if(this.props.clientToken !== '') {
+      console.log(this.props.clientToken, 'componentWillReceiveProps');
+      this.setState({ token: this.props.clientToken});
+      console.log(this.state.token, 'state token');
     }
   }
 
@@ -149,7 +153,7 @@ class Gmap extends React.Component {
     console.log(this.props.submitSearchText, 'searchtext handleupdate');
     this.setState({ search: this.props.submitSearchText});
     // console.log(this.state.search);
-    if(this.props.mapCreated && this.props.submitSearchText !== '' && this.props.submitSearchText && this.state.receivedToken !== true){
+    if(this.props.mapCreated && this.props.submitSearchText !== '' && this.props.searchText && this.state.receivedToken !== true){
       console.log('handleUpdateMap', this.props.submitSearchText);
       this.props.onUpdateMap();
       this.props.updateUrl(this.props.searchText);
@@ -158,24 +162,44 @@ class Gmap extends React.Component {
     }
   }
 
-  componentDidUpdate(){
-    if( this.state.updateMarkers === true && this.state.receivedToken !== true && this.props.clientToken === '') {
-      console.log('componentDidUpdate');
+  shouldComponentUpdate(nextProps, nextState) {
+    console.log(this.props.clientToken, 'token');
+    // console.log(this.state.url, 'component state', nextState.url);
+    if(this.props.newUrl !== '') {
+      this.setState({
+        url: this.props.newUrl,
+        token: this.props.clientToken
+      });
+      this.renderMarkers();
+      console.log(this.props.clientToken, 'shouldComponentUpdate token');
+    }
+
+    if(this.state.updateMarkers && this.state.receivedToken !== true ) {
+      console.log('componentDidUpdate gmaps');
+      console.log(this.props.newUrl, 'componentDidUpdate new url', this.props.yelpUrl, 'yelp url', this.props.url, 'url');
       this.getMarkers();
       this.setState({ updateMarkers: false});
     }
-    // console.log(this.props.searchText, 'searchText', this.props.submitSearch, 'submitSearchText', this.props.newUrl, 'newUrl', this.props.yelpUrl, 'yelp');
+    return true;
   }
 
-  // componentWillUpdate(nextProps, nextState){
-  //   if(this.props.yelpUrl && this.) {
+  // componentDidUpdate(prevProps, prevState){
+  //   // console.log('prevProp', prevProps, this.props, 'prevState', prevState, this.state);
+  //   console.log(this.state.url, 'componentDidUpdate', this.state.receivedToken, this.state.updateMarkers);
+  //   if(this.state.updateMarkers && this.state.receivedToken !== true ) {
+  //     console.log('componentDidUpdate gmaps');
+  //     console.log(this.props.newUrl, 'componentDidUpdate new url', this.props.yelpUrl, 'yelp url', this.props.url, 'url');
   //     this.getMarkers();
+  //     this.setState({ updateMarkers: false});
   //   }
   // }
   render() {
+
     const {infoWindows} = this.state;
     const markers = this.state.markerCoords.map((coords, index) => {
-            return <Marker key={index}
+            return <Marker
+                ref="Marker"
+                key={index}
                 lat={coords.latitude}
                 lng={coords.longitude}
                 onClick={() => this.toggleInfoWindow(index)} />;
@@ -209,6 +233,7 @@ class Gmap extends React.Component {
     return (
       <div>
         <Gmaps
+          ref="Gmaps"
           height={600}
           lat={this.props.initCoords.lat}
           lng={this.props.initCoords.lng}

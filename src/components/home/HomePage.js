@@ -126,7 +126,7 @@ class HomePage extends React.Component{
   updateUrl(searchText) {
     let newUrl = beerUrl + 'businesses/search?location=' + searchText + '&category=breweries';
     this.setState({ newUrl: newUrl});
-    // console.log(newUrl);
+    console.log(newUrl, 'updateUrl homepage', this.state.newUrl);
   }
 
   onUpdateMap(map){
@@ -162,6 +162,7 @@ class HomePage extends React.Component{
 
   componentDidUpdate() {
     if(this.state.submitSearchText !== '' && this.state.clientToken === '' && this.state.receivedToken === false && this.state.dataHandled === false){
+      console.log('componentDidUpdate homepage', this.state.newUrl);
       this.handleData();
       this.setState({dataHandled: true})
     }
