@@ -2,6 +2,7 @@
   "name": "brewtown",
   "version": "0.0.1",
   "private": true,
+  "homepage": "https://brewtown-da2d2.firebaseapp.com/",
   "devDependencies": {
     "react-scripts": "0.2.1"
   },

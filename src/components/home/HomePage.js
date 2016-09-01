@@ -4,7 +4,7 @@ import Gmap from '../gmaps/Gmap';
 import SearchContainer from '../search/SearchContainer';
 
 // const beerUrl = 'http://api.brewerydb.com/v2/';
-const beerUrl = 'https://api.yelp.com/v2/';
+const beerUrl = 'https://api.yelp.com/v3/';
 
 class HomePage extends React.Component{
   constructor(props){
@@ -22,7 +22,10 @@ class HomePage extends React.Component{
       updatedMap: false,
       submitSearch: false,
       submitSearchText: '',
-      clientToken: ''
+      clientToken: '',
+      receivedToken: false,
+      dataHandled: false,
+      yelpUrl: ''
     };
     this.onMapCreated = this.onMapCreated.bind(this);
     this.onUpdateMap = this.onUpdateMap.bind(this);
@@ -30,6 +33,7 @@ class HomePage extends React.Component{
     this.handleUserInput = this.handleUserInput.bind(this);
     this.handleSearchSubmit = this.handleSearchSubmit.bind(this);
     this.fetchData = this.fetchData.bind(this);
+    this.handleData = this.handleData.bind(this);
   }
 
   fetchData(){
@@ -50,19 +54,57 @@ class HomePage extends React.Component{
       console.log(data, 'yelp response');
       return data.access_token;
     }).then(function(token) {
-      if(this.state.clientToken === '') {
-        this.setState({ clientToken: token });
+      if(this.state.clientToken === '' && this.state.clientToken !== token) {
+        this.setState({
+          clientToken: token,
+          receivedToken: true
+         });
+        console.log(this.state.clientToken, 'token1');
       }
     }.bind(this)).catch(function() {
       console.log("Error 1");
     });
+    console.log(this.state.clientToken, 'token2');
   }
 
   onMapCreated(map) {
-    if(this.state.searchText !== '' && this.state.updatedMap) {
+    if(this.state.searchText !== '' && this.state.updatedMap === true) {
       console.log('created update map', this.state.newUrl);
-      let initCoords = this.state.initCoords;
-      this.setState({ updatedMap: false});
+      let url = this.state.newUrl;
+      let obj = {
+        method: "POST",
+        headers: {
+          'Accept': 'application/x-www-form-urlencoded',
+          'Content-type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer' + this.state.clientToken
+        }
+      };
+      if(url !== '' && this.state.receivedToken !== true) {
+        fetch(url).then(function(response) {
+          console.log('2nd fetch url');
+          return response.json();
+        }).then(function(data) {
+          console.log(data);
+          return data.data;
+        }).then(function(items) {
+
+          this.setState({
+            markerCoords: items,
+            markersReceived: true,
+            receivedToken: false
+          });
+
+          console.log(items);
+        }.bind(this)).catch(function() {
+          console.log("Error 1 Homepage promise");
+        });
+      }
+
+      this.setState({
+        updatedMap: false,
+        yelpUrl: url
+      });
+      console.log(this.state.yelpUrl);
     } else {
       //get current position based off of browser geolocation
       console.log('here 2');
@@ -82,19 +124,19 @@ class HomePage extends React.Component{
   }
   // search/?location=92026&sort=1&category_filter=breweries
   updateUrl(searchText) {
-    let newUrl = beerUrl + 'search/?location=' + searchText + 'sort=1&category_filter=breweries&oauth_consumer_key=wGZB-55TSAHeTqqLLTugww&oauth_token=emfbijnN_YscAimIvyNZL1Ix4RIMyHBS&oauth_signature_method=hmac-sha1&oauth_signature=SElWUZcrPrXhhnvRpsZfmL-K3b4&oauth_timestamp';
+    let newUrl = beerUrl + 'businesses/search?location=' + searchText + '&category=breweries';
     this.setState({ newUrl: newUrl});
     // console.log(newUrl);
   }
 
   onUpdateMap(map){
     if(this.state.searchText !== '' && this.state.mapCreated) {
-      console.log('here, update');
+      console.log('onMapUpdate');
       let initCoords = this.state.initCoords;
 
       initCoords.lat = this.state.markerCoords.lat;
       initCoords.lng = this.state.markerCoords.lng;
-      console.log(initCoords);
+      // console.log(initCoords);
 
       this.setState({ initCoords: initCoords });
       this.setState({ mapCreated: false});
@@ -119,15 +161,28 @@ class HomePage extends React.Component{
   }
 
   componentDidUpdate() {
-    if(this.state.updatedMap) {
+    if(this.state.submitSearchText !== '' && this.state.clientToken === '' && this.state.receivedToken === false && this.state.dataHandled === false){
+      this.handleData();
+      this.setState({dataHandled: true})
+    }
+    if(this.state.updatedMap && this.state.receivedToken) {
       this.onMapCreated();
     }
   }
+
+  componentWillUpdate() {
+
+  }
+
+  handleData() {
+    if(this.state.dataHandled === true) {
+      this.setState({ dataHandled: false });
+    } else {
+      this.fetchData();
+    }
+  }
+
   render() {
-    // if(!this.state.mapCreated) {
-    //   this.getUrl();
-    // }
-    this.fetchData();
     return(
       <div className="main">
         <div className='container-fluid'>
@@ -157,6 +212,8 @@ class HomePage extends React.Component{
               onSearchSubmit={this.handleSearchSubmit}
               submitSearch={this.state.submitSearch}
               submitSearchText={this.state.submitSearchText}
+              clientToken={this.state.clientToken}
+              yelpUrl={this.state.yelpUrl}
             />
           </div>
         </div>
